@@ -70,3 +70,7 @@ resultsMediation <- doBoot(mtcars$disp,mtcars$hp, mtcars$cyl, whichTest = "media
 
 resultsRegression <- doBootRegression(mtcars, disp~hp)
 resultsRegression <- doBootRegression(mtcars, disp~hp+(1|cyl), mixedEffects = TRUE)
+
+
+
+
