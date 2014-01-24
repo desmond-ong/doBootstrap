@@ -20,7 +20,7 @@ source("doBootstrap.r")
 #   mediator = mediator data vector (if you want to do mediation)
 #   whichTest = the test you want to do, as a string. 
 #       Currently the tests supported are:
-#           "mean" (single vector test) * DEFAULT
+#           "mean" (single vector test)
 #           "correlation" (correlation between two vectors, paired)
 #           "difference, unpaired" (difference between two vectors, unpaired)
 #           "difference, paired" (difference between two vectors, paired)

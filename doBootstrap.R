@@ -28,7 +28,7 @@
 #   mediator = mediator data vector (if you want to do mediation)
 #   whichTest = the test you want to do, as a string. 
 #       Currently the tests supported are:
-#           "mean" (single vector test) * DEFAULT
+#           "mean" (single vector test)
 #           "correlation" (correlation between two vectors, paired)
 #           "difference, unpaired" (difference between two vectors, unpaired)
 #           "difference, paired" (difference between two vectors, paired)
@@ -43,8 +43,32 @@
 #   na.rm = remove NAs?
 #
 
-doBoot <- function(x, y=NULL, mediator=NULL, whichTest = "mean", numberOfIterations = 5000, 
+doBoot <- function(x, y=NULL, mediator=NULL, whichTest = NULL, numberOfIterations = 5000, 
                    confidenceInterval=.95, na.rm=TRUE) {
+  whichTestReader <- function(whichTestNumber) {
+    if (whichTestNumber == "1") "mean"
+    else if (whichTestNumber == "2") "correlation"
+    else if (whichTestNumber == "3") "difference, unpaired"
+    else if (whichTestNumber == "4") "difference, paired"
+    else if (whichTestNumber == "5") "cohen, unpaired"
+    else if (whichTestNumber == "6") "cohen, paired"
+    else if (whichTestNumber == "7") "mediation"
+    else {NULL;cat("Error. Enter a number from 1 to 7\n")}
+  }
+  while(is.null(whichTest)) {
+    cat("You didn't specify the statistic or test of interest. Please enter a number below:\n")
+    cat("1 : mean (single vector test)\n")
+    cat("2 : correlation (between two vectors)\n")
+    cat("3 : difference, unpaired (between two vectors)\n")
+    cat("4 : difference, paired (between two vectors)\n")
+    cat("5 : cohen, unpaired (between two vectors)\n")
+    cat("6 : cohen, paired (between two vectors)\n")
+    cat("7 : mediation (three vectors, x, y and mediator in that order. x-->y, x-->med-->y)\n")
+    whichTestNumber <- readline("Enter the test you want to do: ")
+    whichTest = whichTestReader(whichTestNumber)
+  }
+  
+  
   results = list()
   # preallocate the final data vector
   bootstrappedVector <- numeric(numberOfIterations)
@@ -90,8 +114,8 @@ doBoot <- function(x, y=NULL, mediator=NULL, whichTest = "mean", numberOfIterati
     bootstrappedVector2 <- numeric(numberOfIterations)
     bootstrappedVectorPooledSD <- numeric(numberOfIterations)
     for (j in 1:numberOfIterations) {
-      sampleX <- mean(sample(x, length(x), replace = TRUE, prob = NULL))
-      sampleY <- mean(sample(y, length(y), replace = TRUE, prob = NULL))
+      sampleX <- sample(x, length(x), replace = TRUE, prob = NULL)
+      sampleY <- sample(y, length(y), replace = TRUE, prob = NULL)
       bootstrappedVector[j] <- mean(sampleX)
       bootstrappedVector2[j] <- mean(sampleY)
       bootstrappedVectorPooledSD[j] <- sqrt( ((length(sampleX)-1)*var(sampleX) + 
@@ -118,14 +142,22 @@ doBoot <- function(x, y=NULL, mediator=NULL, whichTest = "mean", numberOfIterati
     cat("Warning, whichTest is not recognized. Exiting."); return
   }
   
-  results$value = quantile(bootstrappedVector, .500)
-  results$ci.low = quantile(bootstrappedVector, .025)
-  results$ci.high = quantile(bootstrappedVector, .975)
+  results$value = quantile(bootstrappedVector, .500, na.rm)
+  results$ci.low = quantile(bootstrappedVector, .025, na.rm)
+  results$ci.high = quantile(bootstrappedVector, .975, na.rm)
   cat("Results using", numberOfIterations, "iterations, and a", confidenceInterval, "CI \n")
   cat("whichTest used is: *** ", whichTest, "*** in the form: Result, [low end of CI, high end of CI]\n")
   cat(results$value, "[", results$ci.low, ",", results$ci.high, "]\n")
   return(results)
 }
+
+
+
+
+
+
+
+
 
 # doBootRegression is the function you call if you want to bootstrap regressions.
 #
