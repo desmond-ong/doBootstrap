@@ -1,12 +1,13 @@
 # Bootstrap scripts written by Desmond Ong (dco@stanford)
 # Last updated: Jan 20, 2014
 #
-# Warning: not optimized (i.e. I wrote my own functions instead of using R's boot)
-#   so it mayyyy run slow.
+# Warning: not optimized (I wrote my own functions instead of using R's boot) so it mayyyy run slow.
+
+# also see: http://www.statmethods.net/advstats/bootstrapping.html
+
 #
 # Borrowed awesome scripts from:
 # Benoit Monin (bm.med, bm.bootstrapmed, bm.med.writeup) for bootstrapped mediation
-# http://www.statmethods.net/advstats/bootstrapping.html
 #
 # Current Table of Contents
 #
@@ -18,7 +19,16 @@
 #
 
 
-# doBoot is the basic function that calculates descriptive statistics
+# todo:
+# add learning curve to show that bootstrap estimates are asymptoptically converging
+# "learn to fish" section
+# glm (logistic)
+# mediated moderation / moderated mediation
+
+
+
+# doBoot is the basic function that calculates descriptive statistics from one or two samples
+# --------------------
 #
 # Output: Results
 #
@@ -160,7 +170,7 @@ doBoot <- function(x, y=NULL, mediator=NULL, whichTest = NULL, numberOfIteration
 
 
 # doBootRegression is the function you call if you want to bootstrap regressions.
-#
+# --------------------
 # Output: Results
 #
 # Input:
@@ -251,9 +261,7 @@ doBootRegression <- function(dataset, formula, mixedEffects = FALSE, numberOfIte
 
 
 
-
 # printProgressBar: helper function that just prints a simple progress bar to the console at every decade.
-
 printProgressBar <- function(j,numberOfIterations) {
   if((j/numberOfIterations*100) %in% c(10,20,30,40,50,60,70,80,90,100)) {
     progressString = c('|', rep('+', (j/numberOfIterations*10)),rep(' ', (10-j/numberOfIterations*10)), '|')
@@ -262,10 +270,7 @@ printProgressBar <- function(j,numberOfIterations) {
 }
 
 
-
-
-
-## --- Benoit's scripts follow ---
+#### --- Benoit's scripts follow --- ####
 ## By Benoit Monin 2009 monin@stanford.edu
 ## Please let me know about any error you may find so I can fix it
 
@@ -378,3 +383,6 @@ but the coefficient for the manipulation was now c'=",round(cprime,3),", SE(c')=
 Finally, we used a Sobel test to test the reduction in the direct path, z=",round(sobelz,3),", p=",round(2*(1-pnorm(sobelz)),3),".
 ")
 }
+
+
+
