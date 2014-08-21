@@ -2,7 +2,7 @@
 -----------
 This repository contains some basic functions, written in R, to bootstrap effect sizes and confidence intervals for descriptive statistics, regressions, etc.
 
-- doBootstrapPrimer.pdf : contains a primer on bootstrapping.
+- [doBootstrapPrimer.pdf] (../../raw/master/doBootstrapPrimer.pdf) : contains a primer on bootstrapping.
 - doBootstrapReadme.R : contains a few examples for using doBootstrap.R
 - doBootstrap.R : code.
 
