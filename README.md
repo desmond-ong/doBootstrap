@@ -14,6 +14,7 @@ The code is slow as I have not optimized/did not use R's optimized boot function
 - Single-sample descriptive statistics: mean
 - Two-sample descriptive statistics: correlations, differences (paired and unpaired), cohen's d (paired and unpaired)
 - (Simple) Mediation (using code written by Benoit Monin)
+- Custom written functions (or others that are not specified, e.g. median)
 - Fixed effect multiple linear regression (using lm)
 - Mixed effect multiple linear regression (using lme4::lmer)
 
@@ -29,5 +30,5 @@ The code is slow as I have not optimized/did not use R's optimized boot function
 
   
 ##### Changelog
-- 20 Aug 2014: Added a rough draft of a bootstrap primer
-- 20 Jan 2014: First basic version. means, correlations, differences, linear (fixed and mixed) regressions.
+- Aug 2014: Added a rough draft of a bootstrap primer. Added functionality to doBoot to accept custom functions.
+- Jan 2014: First basic version. means, correlations, differences, linear (fixed and mixed) regressions.

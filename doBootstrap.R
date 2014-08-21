@@ -1,5 +1,5 @@
 # Bootstrap scripts written by Desmond Ong (dco@stanford)
-# Last updated: Jan 20, 2014
+# Last updated: Aug 20, 2014
 #
 # Warning: not optimized (I wrote my own functions instead of using R's boot) so it mayyyy run slow.
 
@@ -20,10 +20,12 @@
 
 
 # todo:
-# add learning curve to show that bootstrap estimates are asymptoptically converging
-# "learn to fish" section
-# glm (logistic)
-# mediated moderation / moderated mediation
+# -- add learning curve to show that bootstrap estimates are asymptoptically converging
+# -- "learn to fish" section
+# -- glm (logistic)
+# -- mediated moderation / moderated mediation
+#
+# fix custom function to accept parameters, e.g. t.test(..., paired=TRUE)
 
 
 
@@ -34,9 +36,9 @@
 #
 # Input:
 #   x = first data vector. Feed in a VECTOR!
-#   y = second data vector (not necessary if you're doing statistics on one data vector only, e.g. mean)
+#   y = second data vector (not necessary if you're doing statistics on one data vector)
 #   mediator = mediator data vector (if you want to do mediation)
-#   whichTest = the test you want to do, as a string. 
+#   whichTest = the test you want to do, as a string. If not provided, program will prompt for a test
 #       Currently the tests supported are:
 #           "mean" (single vector test)
 #           "correlation" (correlation between two vectors, paired)
@@ -46,6 +48,9 @@
 #           "cohen, paired" (basically paired difference / standard deviation) * not bias corrected nor accelerated
 #           "mediation" (calculates a x-->y, x-->med-->y mediation, using Benoit's bm.bootmed code)
 #               basically just feeds into Benoit's code for now.
+#           "custom function": allows you to supply your own function, such that the desired statistic
+#               is customFunction(x) or customFunction(x,y) if y is supplied.
+#               Warning: doBoot doesn't test if you have supplied the correct number of arguments. It'll just try to call it.
 #
 #
 #   numberOfIterations = number of bootstrapping iterations. Default is 5000
@@ -53,7 +58,8 @@
 #   na.rm = remove NAs?
 #
 
-doBoot <- function(x, y=NULL, mediator=NULL, whichTest = NULL, numberOfIterations = 5000, 
+doBoot <- function(x, y=NULL, mediator=NULL, whichTest = NULL, customFunction = NULL,
+                   numberOfIterations = 5000, 
                    confidenceInterval=.95, na.rm=TRUE) {
   whichTestReader <- function(whichTestNumber) {
     if (whichTestNumber == "1") "mean"
@@ -63,7 +69,9 @@ doBoot <- function(x, y=NULL, mediator=NULL, whichTest = NULL, numberOfIteration
     else if (whichTestNumber == "5") "cohen, unpaired"
     else if (whichTestNumber == "6") "cohen, paired"
     else if (whichTestNumber == "7") "mediation"
-    else {NULL;cat("Error. Enter a number from 1 to 7\n")}
+    else if (whichTestNumber == "8") "custom function"
+    else if (whichTestNumber == "0") "exit"
+    else {NULL; message("Error. Enter a number from 1 to 8\n")}
   }
   while(is.null(whichTest)) {
     cat("You didn't specify the statistic or test of interest. Please enter a number below:\n")
@@ -74,8 +82,37 @@ doBoot <- function(x, y=NULL, mediator=NULL, whichTest = NULL, numberOfIteration
     cat("5 : cohen, unpaired (between two vectors)\n")
     cat("6 : cohen, paired (between two vectors)\n")
     cat("7 : mediation (three vectors, x, y and mediator in that order. x-->y, x-->med-->y)\n")
+    cat("8 : custom function that you supply\n")
+    cat("0 : Exit\n")
     whichTestNumber <- readline("Enter the test you want to do: ")
     whichTest = whichTestReader(whichTestNumber)
+  }
+  if(whichTest == "exit") return();
+  if(whichTest == "custom function") {
+    if(is.null(customFunction)) { 
+      customFunctionString <- readline("Enter the function: ")
+    } else {
+      customFunctionString <- as.character(substitute(customFunction))  
+    }
+    customFunction <- tryCatch( { get(customFunctionString) },
+                       error=function(cond) {
+                         message("Error: Function does not exist")
+                         message(cond)
+                         # Choose a return value in case of error
+                         return(NULL)
+                         },
+                       warning=function(cond) {
+                         message("Warning:")
+                         message(cond)
+                         # Choose a return value in case of warning
+                         return(NULL)
+                       },finally={})
+    if(is.null(customFunction)) return();
+  }
+  if(is.null(y)) {
+    if(whichTest == "mediation" && is.null(mediator)) { message("Error: ", whichTest, " requires 3 vectors. Exiting."); return();  }
+    else if(whichTest == "custom function") { }
+    else if(whichTest != "mean") { message("Error: ", whichTest, " requires 2 vectors. Exiting."); return();}
   }
   
   
@@ -84,43 +121,35 @@ doBoot <- function(x, y=NULL, mediator=NULL, whichTest = NULL, numberOfIteration
   bootstrappedVector <- numeric(numberOfIterations)
   cat("Performing bootstrap with whichTest ***", whichTest, "***\n")
   if(whichTest == "mean") {
-    for (j in 1:numberOfIterations) {
+    for (j in 1:numberOfIterations) { 
       bootstrappedVector[j] <- mean(sample(x, length(x), replace = TRUE, prob = NULL))
-      
       printProgressBar(j,numberOfIterations)
     } # end iteration loop
   } else if(whichTest == "correlation") {
-    if(is.null(y)) { cat("Warning, correlation requires 2 vectors. Exiting."); return }
-    
     for (j in 1:numberOfIterations) {
       sampleNumbers <- sample(1:length(x), length(x), replace = TRUE, prob = NULL)      
       bootstrappedVector[j] <- cor(x[sampleNumbers],y[sampleNumbers])
-      
       printProgressBar(j,numberOfIterations)
     } # end iteration loop
   } else if(whichTest == "difference, unpaired") {
-    if(is.null(y)) { cat("Warning, difference requires 2 vectors. Exiting."); return }
-    
     bootstrappedVector2 <- numeric(numberOfIterations)
     for (j in 1:numberOfIterations) {
       bootstrappedVector[j] <- mean(sample(x, length(x), replace = TRUE, prob = NULL))
       bootstrappedVector2[j] <- mean(sample(y, length(y), replace = TRUE, prob = NULL))
-      
       printProgressBar(j,numberOfIterations)
     } # end iteration loop
     bootstrappedVector = bootstrappedVector - bootstrappedVector2
+    
   } else if(whichTest == "difference, paired") {
-    if(is.null(y)) { cat("Warning, difference requires 2 vectors. Exiting.\n"); return } 
-    else if(length(y)!=length(x)) { cat("Warning, paired difference requires 2 vectors of equal length. Exiting.\n"); return }
+    if(length(y)!=length(x)) { message("Error: paired difference requires 2 vectors of equal length. Exiting.\n"); return() }
     
     for (j in 1:numberOfIterations) {
       sampleNumbers <- sample(1:length(x), length(x), replace = TRUE, prob = NULL)      
       bootstrappedVector[j] <- mean(x[sampleNumbers]-y[sampleNumbers])
-      
       printProgressBar(j,numberOfIterations)
     } # end iteration loop
+    
   } else if(whichTest == "cohen, unpaired") {
-    if(is.null(y)) { cat("Warning, difference requires 2 vectors. Exiting.\n"); return } 
     bootstrappedVector2 <- numeric(numberOfIterations)
     bootstrappedVectorPooledSD <- numeric(numberOfIterations)
     for (j in 1:numberOfIterations) {
@@ -136,20 +165,33 @@ doBoot <- function(x, y=NULL, mediator=NULL, whichTest = NULL, numberOfIteration
     bootstrappedVector = (bootstrappedVector - bootstrappedVector2) / bootstrappedVectorPooledSD
     
   } else if(whichTest == "cohen, paired") {
-    if(is.null(y)) { cat("Warning, difference requires 2 vectors. Exiting.\n"); return } 
-    else if(length(y)!=length(x)) { cat("Warning, paired difference requires 2 vectors of equal length. Exiting.\n"); return }
+    if(length(y)!=length(x)) { message("Error: paired difference requires 2 vectors of equal length. Exiting.\n"); return() }
     
     for (j in 1:numberOfIterations) {
       sampleNumbers <- sample(1:length(x), length(x), replace = TRUE, prob = NULL)      
-      bootstrappedVector[j] <- mean(x[sampleNumbers]-y[sampleNumbers])/sd(x[sampleNumbers]-y[sampleNumbers])
-      
+      bootstrappedVector[j] <- mean(x[sampleNumbers]-y[sampleNumbers])/sd(x[sampleNumbers]-y[sampleNumbers])      
       printProgressBar(j,numberOfIterations)
     } # end iteration loop
     
   } else if(whichTest == "mediation") {
     bm.bootstrapmed(x,mediator,y,iterations = numberOfIterations, alpha = 1-confidenceInterval); return
+  } else if(whichTest == "custom function") {
+    cat("Custom Function provided is: *** ", customFunctionString, "*** \n")
+    if(is.null(y)) {
+      for (j in 1:numberOfIterations) {
+        bootstrappedVector[j] <- customFunction(sample(x, length(x), replace = TRUE, prob = NULL))
+        printProgressBar(j,numberOfIterations)
+      } # end iteration loop  
+    } else {
+      for (j in 1:numberOfIterations) {
+        bootstrappedVector[j] <- customFunction(sample(x, length(x), replace = TRUE, prob = NULL),
+                                                sample(y, length(y), replace = TRUE, prob = NULL))
+        printProgressBar(j,numberOfIterations)
+      } # end iteration loop
+    }
+    
   } else {
-    cat("Warning, whichTest is not recognized. Exiting."); return
+    message("Error: whichTest is not recognized. Exiting."); return
   }
   
   results$value = quantile(bootstrappedVector, .500, na.rm)

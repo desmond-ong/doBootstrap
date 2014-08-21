@@ -1,5 +1,5 @@
 # Bootstrap scripts written by Desmond Ong (dco@stanford)
-# Last updated: Jan 20, 2014
+# Last updated: Aug 20, 2014
 
 # This is the Readme File.
 
@@ -9,7 +9,7 @@ source("doBootstrap.r")
 
 # doBoot is the basic function that calculates descriptive statistics
 #
-# results <- doBoot <- function(x, y=NULL, mediator=NULL, whichTest = "mean", numberOfIterations = 5000, 
+# results <- doBoot(x, y=NULL, mediator=NULL, whichTest = "mean", numberOfIterations = 5000, 
 # confidenceInterval=.95, na.rm=TRUE)
 #
 # Output: Results
@@ -28,6 +28,10 @@ source("doBootstrap.r")
 #           "cohen, paired" (basically paired difference / standard deviation) * not bias corrected nor accelerated
 #           "mediation" (calculates a x-->y, x-->med-->y mediation, using Benoit's bm.bootmed code)
 #               basically just feeds into Benoit's code for now.
+#           "custom function": allows you to supply your own function, such that the desired statistic
+#               is customFunction(x) or customFunction(x,y) if y is supplied.
+#               Warning: doBoot doesn't test if you have supplied the correct number of arguments. It'll just try to call it.
+#
 #
 #   numberOfIterations = number of bootstrapping iterations. Default is 5000
 #   confidenceInterval = specifies the percentile of the CI. Default is .95
@@ -51,7 +55,7 @@ resultsMediation <- doBoot(mtcars$disp,mtcars$hp, mtcars$cyl, whichTest = "media
 
 # # doBootRegression is the function you call if you want to bootstrap regressions.
 #
-# doBootRegression <- function(dataset, formula, mixedEffects = FALSE, numberOfIterations = 5000, 
+# results <- doBootRegression(dataset, formula, mixedEffects = FALSE, numberOfIterations = 5000, 
 # confidenceInterval=.95, na.rm=TRUE)
 #
 # Output: Results
