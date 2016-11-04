@@ -1,5 +1,9 @@
 # doBootstrap
 -----------
+update 2016-11-06: I just chanced across a sequence of blogposts [one](http://sumsar.net/blog/2015/04/the-non-parametric-bootstrap-as-a-bayesian-model/), [two](http://www.sumsar.net/blog/2015/07/easy-bayesian-bootstrap-in-r/), and [three](http://www.sumsar.net/blog/2016/02/bayesboot-an-r-package/) detailing Bayesian and classical non-parametric bootstrap, and detailing a package ('bayesboot', on CRAN) for Bayesian bootstrapping. I haven't checked it out yet. (My implmentation below is a simple, "classical" non-parametric bootstrap.)
+
+
+-----------
 This repository contains some basic functions, written in R, to bootstrap effect sizes and confidence intervals for descriptive statistics, regressions, etc.
 
 - [doBootstrapPrimer.pdf] (../../raw/master/doBootstrapPrimer.pdf) : contains a primer on bootstrapping.
